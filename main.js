@@ -1,7 +1,106 @@
 /**
  * 主进程在 Node.js 环境中运行，这意味着它具有 require 模块和使用所有 Node.js API 的能力
  */
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, Menu, MenuItem, session, ipcMain } = require('electron')
+const path = require('node:path')
+const os = require('node:os')
+const { name } = require('./package.json')
+
+/** 支持prompt */
+const prompt = require('electron-prompt');
+/**
+ * @description 打开prompt窗口
+ * @param {Electron.IpcMainEvent} event 
+ * @param {string | undefined} title 
+ * @param {string | undefined} content 
+ */
+const windowPrompt = async (event, title, content) => {
+    // let window = event.sender.getOwnerBrowserWindow();
+    return new Promise((resolve, reject) => {
+        prompt({
+            title: event.sender.getURL() + '：确认',
+            label: title,
+            buttonLabels: {
+                ok: '确认',
+                cancel: '取消'
+            },
+            type: 'input',
+            inputAttrs: {
+                type: 'text'
+            },
+            width: 500,
+            height: 180
+        })
+            .then(res => res ? resolve(res) : reject(null))
+            .catch(error => reject(null))
+    })
+
+}
+ipcMain.on('window-prompt', async (event, /** @type {string | undefined} */ title, /** @type {string | undefined} */ content) => {
+    event.returnValue = await windowPrompt(event, title, content)
+})
+
+
+// 开发工具拓展 on windows
+const vueDevToolsPath = path.join(
+    os.homedir(),
+    'AppData/Local/Google/Chrome/User Data/Default/Extensions/nhdogjmejiglipccpnnnanhbledajbpd/6.6.1_0'
+)
+// const vueDevToolsPath = path.join(
+//     __dirname,
+//     'chrome-extensions/nhdogjmejiglipccpnnnanhbledajbpd/6.6.1_0'
+// )
+console.log('vueDevToolsPath: ', vueDevToolsPath)
+app.name = name
+app.getFileIcon('./favicon.ico')
+
+/** 头部主菜单 */
+const menu = new Menu()
+
+/**
+ * @description 创建菜单项的工厂函数
+ * @param {Electron.MenuItemConstructorOptions} option 
+ * @returns 
+ */
+const menuItemfactory = (option) => {
+    return new MenuItem(option)
+}
+
+menu.append(menuItemfactory({
+    label: 'Chrome DevTools',
+    /**
+     * 
+     * @param {Electron.MenuItem} menuItem 
+     * @param {Electron.BrowserWindow | undefined} browserWindow 
+     * @param {Electron.KeyboardEvent} event 
+     */
+    click: (menuItem, browserWindow, event) => {
+        console.log('here meunItem: chrome devTools - click event')
+        if (browserWindow) {
+            const contents = browserWindow.webContents
+            // 打开Chromium的开发者工具集
+            contents.isDevToolsOpened() ? contents.closeDevTools() : contents.openDevTools()
+        }
+    }
+}))
+menu.append(menuItemfactory({
+    label: '刷新',
+    /**
+     * 
+     * @param {Electron.MenuItem} menuItem 
+     * @param {Electron.BrowserWindow | undefined} browserWindow 
+     * @param {Electron.KeyboardEvent} event 
+     */
+    click: (menuItem, browserWindow, event) => {
+        console.log('here meunItem: 刷新 - click event')
+        if (browserWindow) {
+            const contents = browserWindow.webContents
+            contents.reload()
+        }
+    }
+}))
+app.applicationMenu = menu
+
 // 加载进一个新的BrowserWindow实例
 const createWindow = () => {
     // BrowserWindow 类的每个实例创建一个应用程序窗口，且在单独的渲染器进程中加载一个网页
@@ -14,20 +113,36 @@ const createWindow = () => {
 const createWindow_remote = () => {
     // BrowserWindow 类的每个实例创建一个应用程序窗口，且在单独的渲染器进程中加载一个网页
     const win = new BrowserWindow({
-        width: 960,
-        height: 600
+        width: 1200,
+        height: 800,
+        webPreferences: {
+            preload: path.join(__dirname, './src/utils/ipcPreload.js')
+        },
     })
-    win.loadURL('https://www.electronjs.org/zh/docs/latest/tutorial/process-model')
-    win.on('resize', event => {
+    // win.loadURL('https://www.electronjs.org/zh/docs/latest/tutorial/process-model')
+    win.loadURL('http://localhost:6174/index_design.html#/adap/21000061/request-prototyping-design/interfacial?productId=21000061&functionId=60fa393a-9e6f-49c0-a79b-04203e084474')
+
+    win.on('resize', (/** @type {Function} */ event) => {
         console.log('here resize handle', event, contents)
+    })
+    win.webContents.on('dom-ready', () => {
+        console.log('here dom-ready')
     })
     const contents = win.webContents
     // 打开Chromium的开发者工具集
-    contents.openDevTools()
+    // contents.openDevTools() // 鼠标右键-菜单栏打开
     console.log(contents)
+    setTimeout(() => {
+        console.info('here passed 3s, and call destory.')
+        // win.destroy()
+
+    }, 3000);
 }
 // 在 app 模块的 ready 事件被激发后才能创建浏览器窗口
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+    /** 加载开发工具拓展 */
+    await session.defaultSession.loadExtension(vueDevToolsPath)
+
     // createWindow()
     createWindow_remote()
     // 因为窗口无法在 ready 事件前创建，你应当在你的应用初始化后仅监听 activate 事件
