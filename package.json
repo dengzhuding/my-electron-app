@@ -4,7 +4,7 @@
   "description": "electron项目",
   "main": "main.js",
   "scripts": {
-    "start": "electron ./dist --inspect=1025 .",
+    "start": "electron --inspect=1025 .",
     "build": "tsc --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -13,7 +13,8 @@
   "devDependencies": {
     "@types/electron-prompt": "^1.6.5",
     "electron": "^29.1.0",
-    "typescript": "^5.4.2"
+    "typescript": "^5.4.2",
+    "vite": "^5.1.6"
   },
   "dependencies": {
     "electron-prompt": "^1.7.0"

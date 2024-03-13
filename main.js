@@ -15,11 +15,14 @@ const prompt = require('electron-prompt');
  * @param {string | undefined} content 
  */
 const windowPrompt = async (event, title, content) => {
+    console.log(`here windowPrompt fn, title:${title} - content:${content}`)
     // let window = event.sender.getOwnerBrowserWindow();
+    const win = BrowserWindow.getFocusedWindow()
     return new Promise((resolve, reject) => {
         prompt({
             title: event.sender.getURL() + '：确认',
             label: title,
+            value: content || '',
             buttonLabels: {
                 ok: '确认',
                 cancel: '取消'
@@ -30,17 +33,21 @@ const windowPrompt = async (event, title, content) => {
             },
             width: 500,
             height: 180
-        })
+        }, win || undefined)
             .then(res => res ? resolve(res) : reject(null))
             .catch(error => reject(null))
     })
 
 }
+/** ipcRenderer.send用on监听？ */
 ipcMain.on('window-prompt', async (event, /** @type {string | undefined} */ title, /** @type {string | undefined} */ content) => {
     event.returnValue = await windowPrompt(event, title, content)
 })
-
-
+/** ipcRenderer.invoke 用handle监听？ */
+ipcMain.handle('load-prefs', (event, /** @type {string | undefined} */ content) => {
+    console.info('here ipcMain.handle:load-prefs', event)
+    return Promise.resolve(`hello ${content} !`)
+})
 // 开发工具拓展 on windows
 const vueDevToolsPath = path.join(
     os.homedir(),
@@ -99,18 +106,25 @@ menu.append(menuItemfactory({
         }
     }
 }))
+menu.append(menuItemfactory({
+    label: '本地窗口',
+    /**
+     * 
+     * @param {Electron.MenuItem} menuItem 
+     * @param {Electron.BrowserWindow | undefined} browserWindow 
+     * @param {Electron.KeyboardEvent} event 
+     */
+    click: (menuItem, browserWindow, event) => {
+        console.log('here meunItem: 本地窗口 - click event')
+        createWindow()
+    }
+}))
 app.applicationMenu = menu
+
+app.applicationMenu
 
 // 加载进一个新的BrowserWindow实例
 const createWindow = () => {
-    // BrowserWindow 类的每个实例创建一个应用程序窗口，且在单独的渲染器进程中加载一个网页
-    const win = new BrowserWindow({
-        width: 800,
-        height: 600
-    })
-    win.loadFile('index.html')
-}
-const createWindow_remote = () => {
     // BrowserWindow 类的每个实例创建一个应用程序窗口，且在单独的渲染器进程中加载一个网页
     const win = new BrowserWindow({
         width: 1200,
@@ -118,6 +132,42 @@ const createWindow_remote = () => {
         webPreferences: {
             preload: path.join(__dirname, './src/utils/ipcPreload.js')
         },
+    })
+    win.loadFile('index.html')
+    const contents = win.webContents
+    // 打开Chromium的开发者工具集
+    contents.openDevTools()
+}
+// 加载进一个新的BrowserWindow实例
+const createWindow_local = () => {
+    const win = new BrowserWindow({
+        width: 1200,
+        height: 800,
+        webPreferences: {
+            preload: path.join(__dirname, './src/utils/ipcPreload.js')
+        },
+    })
+    win.loadURL('http://localhost:1096/')
+    const contents = win.webContents
+    contents.openDevTools()
+}
+const createWindow_remote = () => {
+    // BrowserWindow 类的每个实例创建一个应用程序窗口，且在单独的渲染器进程中加载一个网页
+    const win = new BrowserWindow({
+        width: 1200,
+        height: 800,
+        webPreferences: {
+            contextIsolation: true,
+            /**
+                预加载（preload）脚本包含了那些执行于渲染器进程中，且先于网页内容开始加载的代码
+                虽然预加载脚本与其所附着的渲染器在共享着一个全局 window 对象，
+                但您并不能从中直接附加任何变动到 window 之上，因为 contextIsolation(上下文隔离) 是默认的
+                使用 contextBridge 模块来安全地实现交互
+             * 
+             */
+            preload: path.join(__dirname, './src/utils/ipcPreload.js')
+        },
+
     })
     // win.loadURL('https://www.electronjs.org/zh/docs/latest/tutorial/process-model')
     win.loadURL('http://localhost:6174/index_design.html#/adap/21000061/request-prototyping-design/interfacial?productId=21000061&functionId=60fa393a-9e6f-49c0-a79b-04203e084474')
@@ -144,7 +194,8 @@ app.whenReady().then(async () => {
     await session.defaultSession.loadExtension(vueDevToolsPath)
 
     // createWindow()
-    createWindow_remote()
+    createWindow_local()
+    // createWindow_remote()
     // 因为窗口无法在 ready 事件前创建，你应当在你的应用初始化后仅监听 activate 事件
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0)
