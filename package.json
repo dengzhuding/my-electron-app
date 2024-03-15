@@ -1,22 +1,31 @@
 {
   "name": "my-electron-app",
   "version": "1.0.0",
-  "description": "electron项目",
+  "description": "electron测试项目 - 预设功能有看电子书（支持导入）、听音乐（本地+线上）、访问网站（可选择是否是要使用代理）",
   "main": "main.js",
   "scripts": {
     "start": "electron --inspect=1025 .",
     "build": "tsc --watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "app:dir": "electron-builder --dir",
+    "app:dist": "electron-builder"
   },
   "author": "dzd",
   "license": "ISC",
   "devDependencies": {
     "@types/electron-prompt": "^1.6.5",
     "electron": "^29.1.0",
+    "electron-builder": "^24.13.3",
     "typescript": "^5.4.2",
     "vite": "^5.1.6"
   },
   "dependencies": {
     "electron-prompt": "^1.7.0"
+  },
+  "build": {
+    "appId": "my-electron-app-id",
+    "mac": {
+      "category": "your.app.category.type"
+    }
   }
 }
