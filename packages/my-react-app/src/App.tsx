@@ -5,17 +5,25 @@ import './App.css'
 
 function App() {
   const [count, setCount] = useState(0)
+  const [title, setTitle] = useState(document.title)
+
+  const btnClickHandle: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    console.log('here btn click handle:', event)
+    window.setTitle && window.setTitle(title)
+  }
 
   return (
     <>
-      <h1 className="text-red-600">Vite + React</h1>
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+      </div>
+      
+      <div className='flex flex-col'>
+        <p className=''>title: {title}</p>
+        <input className='border ' type="text" value={title} onChange={event => setTitle(event.target.value)}/>
+        <button className='border-violet-500' onClick={btnClickHandle}>set title</button>
       </div>
     </>
   )

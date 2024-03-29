@@ -13,6 +13,7 @@
   "author": "dzd",
   "license": "ISC",
   "devDependencies": {
+    "@electron/asar": "^3.2.9",
     "@types/electron-prompt": "^1.6.5",
     "electron": "^29.1.0",
     "electron-builder": "^24.13.3",

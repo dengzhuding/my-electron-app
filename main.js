@@ -6,6 +6,25 @@ const path = require('node:path')
 const os = require('node:os')
 const { name } = require('./package.json')
 
+/** ********************** 进程间通信的4种模式 start ********************** */
+/**
+ * 1. Renderer to main (one-way单向)
+ *   发送：ipcRenderer.send | ipcRenderer.sendSync
+ *   接收: ipcMain.on
+ *  */
+ipcMain.on('set-title', (event, /** @type {string} */ title) => {
+    console.log('here "set-title" handle, event: ', event)
+    const contents = event.sender
+    const win = BrowserWindow.fromWebContents(contents)
+    if (win) {
+        win.setTitle(title)
+    }
+
+})
+
+
+/** ********************** 进程间通信的4种模式 end ********************** */
+
 /** 支持prompt */
 const prompt = require('electron-prompt');
 /**
@@ -41,7 +60,11 @@ const windowPrompt = async (event, title, content) => {
 }
 /** ipcRenderer.send用on监听？ */
 ipcMain.on('window-prompt', async (event, /** @type {string | undefined} */ title, /** @type {string | undefined} */ content) => {
-    event.returnValue = await windowPrompt(event, title, content)
+    try {
+        event.returnValue = await windowPrompt(event, title, content)
+    } catch (error) {
+        event.returnValue = null
+    }
 })
 /** ipcRenderer.invoke 用handle监听？ */
 ipcMain.handle('load-prefs', (event, /** @type {string | undefined} */ content) => {
@@ -52,6 +75,10 @@ ipcMain.handle('load-prefs', (event, /** @type {string | undefined} */ content) 
 const vueDevToolsPath = path.join(
     os.homedir(),
     'AppData/Local/Google/Chrome/User Data/Default/Extensions/nhdogjmejiglipccpnnnanhbledajbpd/6.6.1_0'
+)
+const reactDevToolsPath = path.join(
+    os.homedir(),
+    'AppData/Local/Google/Chrome/User Data/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/5.0.2_0'
 )
 // const vueDevToolsPath = path.join(
 //     __dirname,
@@ -121,7 +148,7 @@ menu.append(menuItemfactory({
 }))
 app.applicationMenu = menu
 
-app.applicationMenu
+
 
 // 加载进一个新的BrowserWindow实例
 const createWindow = () => {
@@ -144,11 +171,16 @@ const createWindow_local = () => {
         width: 1200,
         height: 800,
         webPreferences: {
+            contextIsolation: true,
             preload: path.join(__dirname, './src/utils/ipcPreload.js')
         },
     })
     win.loadURL('http://localhost:1096/')
+        .catch(error => console.warn('loadURL faild: ', error))
     const contents = win.webContents
+    contents.on('did-fail-load', (event, code, des) => {
+        console.log('here webContents - on(\'did-fail-load\'): ', code, des)
+    })
     contents.openDevTools()
 }
 const createWindow_remote = () => {
@@ -192,6 +224,7 @@ const createWindow_remote = () => {
 app.whenReady().then(async () => {
     /** 加载开发工具拓展 */
     await session.defaultSession.loadExtension(vueDevToolsPath)
+    await session.defaultSession.loadExtension(reactDevToolsPath)
 
     // createWindow()
     createWindow_local()
@@ -204,6 +237,7 @@ app.whenReady().then(async () => {
 })
 // 关闭所有窗口时退出应用 (Windows & Linux)
 app.on('window-all-closed', () => {
+    console.log('here window-all-closed handler')
     // 如果用户不是在 macOS(darwin) 上运行程序，则调用 app.quit()。
     if (process.platform !== 'darwin') {
         app.quit()

@@ -1,7 +1,22 @@
 "use strict";
 /** 应用预加载设置脚本 */
 const { ipcRenderer } = require('electron');
-const { contextBridge } = require('electron/renderer');
+const { contextBridge, webUtils } = require('electron/renderer');
+ipcRenderer.sendSync;
+/** ********************** 进程间通信的4种模式 start ********************** */
+/**
+ * 1. Renderer to main (one-way单向)
+ *   发送：ipcRenderer.send | ipcRenderer.sendSync
+ *   接收: ipcMain.on
+ *  */
+const setTitle = (title) => {
+    // 异步？
+    ipcRenderer.send('set-title', title);
+    // 同步？
+    // ipcRenderer.sendSync('set-title', title)
+};
+contextBridge.exposeInMainWorld('setTitle', setTitle);
+/** ********************** 进程间通信的4种模式 end ********************** */
 const myPrompt = (message, _default) => {
     // 进程间通信：同步方法调用
     return ipcRenderer.sendSync('window-prompt', message, _default);
@@ -14,13 +29,15 @@ const printStr = (str) => {
  * 重置window.prompt
  *
  * */
-// window.prompt = myPrompt as any  // 直接设置失败
+// window.prompt = myPrompt as any  // 直接设置失败，需要设置取消上下文隔离(contextIsolation: false)
 /**
  * 暴露主进程对象
  * 覆盖window.prompt方法（只能在应用环境中用myPromp替换window.prompt使用）
  *  */
+/** MainWorld - 暴露属性到window.myPrompt上 */
 contextBridge.exposeInMainWorld('myPrompt', myPrompt);
-// contextBridge.exposeInIsolatedWorld(1004, 'printStr', printStr)
+/** IsolatedWorld - 暴露到隔离的环境（这个文件执行的环境中） */
+contextBridge.exposeInIsolatedWorld(1004, 'printStr', printStr);
 contextBridge.exposeInMainWorld('electronAPI', {
     // 发送消息通知，期望异步的结果（.send方法不接收回传）
     loadPreferences: (content) => ipcRenderer.invoke('load-prefs', content)
