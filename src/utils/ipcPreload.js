@@ -15,7 +15,19 @@ const setTitle = (title) => {
     // 同步？
     // ipcRenderer.sendSync('set-title', title)
 };
-contextBridge.exposeInMainWorld('setTitle', setTitle);
+/**
+ * 2. Renderer to main (two-way双向)
+ * 发送：ipcRenderer.invoke
+ * 接收：ipcMain.handle
+ */
+const getFileChoosePath = () => {
+    return ipcRenderer.invoke('dialog:openFile');
+};
+/** 暴露给渲染进程 */
+contextBridge.exposeInMainWorld('isolatedShare', {
+    setTitle,
+    getFileChoosePath
+});
 /** ********************** 进程间通信的4种模式 end ********************** */
 const myPrompt = (message, _default) => {
     // 进程间通信：同步方法调用

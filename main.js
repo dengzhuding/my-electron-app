@@ -1,7 +1,7 @@
 /**
  * 主进程在 Node.js 环境中运行，这意味着它具有 require 模块和使用所有 Node.js API 的能力
  */
-const { app, BrowserWindow, Menu, MenuItem, session, ipcMain } = require('electron')
+const { app, BrowserWindow, Menu, MenuItem, session, ipcMain, dialog, nativeImage } = require('electron')
 const path = require('node:path')
 const os = require('node:os')
 const { name } = require('./package.json')
@@ -13,7 +13,7 @@ const { name } = require('./package.json')
  *   接收: ipcMain.on
  *  */
 ipcMain.on('set-title', (event, /** @type {string} */ title) => {
-    console.log('here "set-title" handle, event: ', event)
+    console.log('here "set-title" handle, event: ')
     const contents = event.sender
     const win = BrowserWindow.fromWebContents(contents)
     if (win) {
@@ -22,6 +22,22 @@ ipcMain.on('set-title', (event, /** @type {string} */ title) => {
 
 })
 
+/**
+ * 2. Renderer to main (two-way双向)
+ * 发送：ipcRenderer.invoke
+ * 接收：ipcMain.handle
+ */
+ipcMain.handle('dialog:openFile', async (event) => {
+    console.log('here "dialog:openFile" handle, event: ')
+    const contents = event.sender
+    const win = BrowserWindow.fromWebContents(contents)
+    const res = await dialog.showOpenDialog(win, {
+        title: '选择文件',
+        defaultPath: 'E:\\temp',
+        message: 'hello message.'
+    })
+    return res
+})
 
 /** ********************** 进程间通信的4种模式 end ********************** */
 
@@ -61,6 +77,7 @@ const windowPrompt = async (event, title, content) => {
 /** ipcRenderer.send用on监听？ */
 ipcMain.on('window-prompt', async (event, /** @type {string | undefined} */ title, /** @type {string | undefined} */ content) => {
     try {
+        // returnValue any - 如果对此赋值，则该值会在同步消息中返回
         event.returnValue = await windowPrompt(event, title, content)
     } catch (error) {
         event.returnValue = null
@@ -174,7 +191,9 @@ const createWindow_local = () => {
             contextIsolation: true,
             preload: path.join(__dirname, './src/utils/ipcPreload.js')
         },
+        icon: nativeImage.createFromPath(path.join(__dirname + './favicon.png'))
     })
+
     win.loadURL('http://localhost:1096/')
         .catch(error => console.warn('loadURL faild: ', error))
     const contents = win.webContents

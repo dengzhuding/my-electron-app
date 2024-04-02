@@ -6,5 +6,11 @@ declare global {
 }
 
 interface Window {
-    setTitle(title: string): void
+    isolatedShare: {
+        setTitle(title: string): void
+        getFileChoosePath(): Promise<{
+            canceled: boolean
+            filePaths: Array<string>
+        }>
+    }
 }

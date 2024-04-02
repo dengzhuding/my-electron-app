@@ -4,6 +4,7 @@
   "description": "electron测试项目 - 预设功能有看电子书（支持导入）、听音乐（本地+线上）、访问网站（可选择是否是要使用代理）",
   "main": "main.js",
   "scripts": {
+    "dev": "nodemon",
     "start": "electron --inspect=1025 .",
     "build": "tsc --watch",
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -17,6 +18,7 @@
     "@types/electron-prompt": "^1.6.5",
     "electron": "^29.1.0",
     "electron-builder": "^24.13.3",
+    "nodemon": "^3.1.0",
     "typescript": "^5.4.2",
     "vite": "^5.1.6"
   },
@@ -28,5 +30,20 @@
     "mac": {
       "category": "your.app.category.type"
     }
+  },
+  "nodemonConfig": {
+    "exec": "electron --inspect=1025 .",
+    "ignore": [
+      ".git",
+      "node_modules/**/node_modules"
+    ],
+    "watch": [
+      "main.js",
+      "./src/"
+    ],
+    "env": {
+      "NODE_ENV": "development"
+    },
+    "ext": "js,json"
   }
 }
