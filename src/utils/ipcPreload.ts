@@ -21,7 +21,7 @@ const setTitle = (title: string) => {
  * 发送：ipcRenderer.invoke
  * 接收：ipcMain.handle
  */
-const getFileChoosePath = () => {
+const getFileChoosePath = (): Promise<Electron.OpenDialogReturnValue> => {
   return ipcRenderer.invoke('dialog:openFile')
 }
 /** 暴露给渲染进程 */
@@ -33,11 +33,11 @@ contextBridge.exposeInMainWorld('isolatedShare', {
 /** ********************** 进程间通信的4种模式 end ********************** */
 
 const myPrompt = (message?: string | undefined, _default?: string | undefined) => {
-    // 进程间通信：同步方法调用
-    return ipcRenderer.sendSync('window-prompt', message, _default)
+  // 进程间通信：同步方法调用
+  return ipcRenderer.sendSync('window-prompt', message, _default)
 }
 const printStr = (str: string) => {
-    console.log(str)
+  console.log(str)
 }
 /** 
  * 预加载脚本在渲染器进程加载之前加载，并有权访问两个 渲染器全局 (例如 window 和 document) 和 Node.js 环境
@@ -88,6 +88,6 @@ window.testFn = (text: string) => console.log(text)
 window.testObj = {
   a: 123,
   b: [
-    {c: new Map()}
+    { c: new Map() }
   ]
 }

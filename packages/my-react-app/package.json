@@ -10,6 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@logicflow/core": "^1.2.26",
+    "@logicflow/extension": "^1.2.26",
+    "@mui/material": "^5.15.15",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

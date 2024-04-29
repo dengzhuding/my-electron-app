@@ -3,6 +3,9 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
+import LogicFlowMain from "./logic-flow";
+import ElectronApply from './electrorn-apply'
+
 function App() {
   const [count, setCount] = useState(0)
   const [title, setTitle] = useState(document.title)
@@ -35,26 +38,10 @@ function App() {
 
   return (
     <>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-      </div>
-      
-      <div className='flex flex-col items-stretch mb-6'>
-        {/* 设置窗口标题 */}
-        <p className=''>title: {title}</p>
-        <input className='my-3 border hover:border-violet-300' type="text" value={title} onChange={event => setTitle(event.target.value)}/>
-        <button className='border-violet-500 bg-violet-500 hover:bg-violet-800 text-white p-1' onClick={btnClickHandle}>set title</button>
-      </div>
-      <div className='flex flex-col items-stretch mb-6'>
-        {/* 打开一个原生的文件对话框 */}
-        <p className='self-start'>File Path:</p>
-        <textarea className='my-3 border hover:border-violet-300' id={'filePathInput'} disabled />
-        <button className='border-violet-500 bg-violet-500 hover:bg-violet-800 text-white p-1' onClick={openShowOpenDialog}>选择文件</button>
-      </div>
+      <LogicFlowMain></LogicFlowMain>
+      <ElectronApply></ElectronApply>
     </>
-  )
+  );
 }
 
 export default App

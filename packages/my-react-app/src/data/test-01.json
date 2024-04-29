@@ -1,0 +1,68 @@
+{
+    "nodes": [
+        {
+            "id": "31f4c876-4dea-4bbd-9386-e94f68c729bc",
+            "type": "rect-radius",
+            "x": 580,
+            "y": 260,
+            "properties": {
+                "backgroundColor": "rgb(218, 232, 252)",
+                "borderWidth": "1px",
+                "borderColor": "rgb(108, 142, 191)"
+            },
+            "zIndex": 1006
+        },
+        {
+            "id": "e16eec56-f435-4820-8af0-70cddc28cbe5",
+            "type": "triangle",
+            "x": 290,
+            "y": 185,
+            "properties": {
+                "backgroundColor": "rgb(248, 206, 204)",
+                "borderWidth": "1px",
+                "borderColor": "rgb(184, 84, 80)",
+                "nodeSize": {
+                    "width": 310,
+                    "height": 167
+                }
+            },
+            "zIndex": 1007
+        }
+    ],
+    "edges": [
+        {
+            "id": "7940dcfc-89a6-4520-a657-47bcad2430b9",
+            "type": "pro-polyline",
+            "sourceNodeId": "e16eec56-f435-4820-8af0-70cddc28cbe5",
+            "targetNodeId": "31f4c876-4dea-4bbd-9386-e94f68c729bc",
+            "startPoint": {
+                "x": 445,
+                "y": 186.5
+            },
+            "endPoint": {
+                "x": 530,
+                "y": 260
+            },
+            "properties": {},
+            "zIndex": 1008,
+            "pointsList": [
+                {
+                    "x": 445,
+                    "y": 186.5
+                },
+                {
+                    "x": 500,
+                    "y": 186.5
+                },
+                {
+                    "x": 500,
+                    "y": 260
+                },
+                {
+                    "x": 530,
+                    "y": 260
+                }
+            ]
+        }
+    ]
+}
